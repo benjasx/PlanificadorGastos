@@ -15,7 +15,7 @@ export default function BudgetTraker() {
           resetear app
         </button>
 
-        <AmountDisplay label="Pesupuesto" amount={300} />
+        <AmountDisplay label="Presupuesto" amount={300} />
         <AmountDisplay label="Disponible" amount={200} />
         <AmountDisplay label="Gatado" amount={100} />
       </div>
