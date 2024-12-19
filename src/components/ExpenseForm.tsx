@@ -3,7 +3,7 @@ import { DraftExpense, Value } from "../types";
 import DatePicker from "react-date-picker";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import ErrorMessage from "./ErrorMessage";
 import { useBudget } from "../hook/useBudget";
 
@@ -16,7 +16,14 @@ export default function ExpenseForm() {
   });
 
   const [error, setError] = useState('')
-  const {dispatch} = useBudget()
+  const {dispatch, state} = useBudget()
+
+  useEffect(() =>{
+    if(state.editindId){
+      const editingExpense = state.expense.filter(currentExpense => currentExpense.id === state.editindId)[0]
+      setExpense(editingExpense)
+    }
+  },[state.editindId])
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>
@@ -44,8 +51,14 @@ export default function ExpenseForm() {
         return
       }
 
-      //Agregar nuevo gasto
-      dispatch({type:'add-expense', payload:{expense}})
+      //Agregar o actializar el  gasto
+      if(state.editindId){
+        dispatch({type:'update-expense', payload:{expense:{id: state.editindId, ...expense}}})
+
+      }else{
+
+        dispatch({type:'add-expense', payload:{expense}})
+      }
 
       //Reiniciar el form
       setExpense({
