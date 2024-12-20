@@ -15,27 +15,32 @@ export default function ExpenseForm() {
     date: new Date(),
   });
 
-  const [error, setError] = useState('')
-  const [previousAmount, setPreviousAmount] = useState(0)
-  const {dispatch, state, disponible} = useBudget()
+  const [error, setError] = useState("");
+  const [previousAmount, setPreviousAmount] = useState(0);
+  const { dispatch, state, disponible } = useBudget();
 
-  useEffect(() =>{
-    if(state.editindId){
-      const editingExpense = state.expense.filter(currentExpense => currentExpense.id === state.editindId)[0]
-      setExpense(editingExpense)
-      setPreviousAmount(editingExpense.amount)
+  useEffect(() => {
+    if (state.editindId) {
+      const editingExpense = state.expense.filter(
+        (currentExpense) => currentExpense.id === state.editindId
+      )[0];
+      setExpense(editingExpense);
+      setPreviousAmount(editingExpense.amount);
     }
-  },[state.editindId])
+  }, [state.editindId]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     const isAmountField = ["amount"].includes(name);
+
+    // Si es el campo "amount" y el valor está vacío, lo tratamos como 0
     setExpense({
       ...expense,
-      [name] : isAmountField ? +value : value
-    })
+      [name]: isAmountField ? (value === "" ? 0 : +value) : value,
+    });
   };
 
   const handleChangeDate = (value: Value) => {
@@ -44,50 +49,50 @@ export default function ExpenseForm() {
       date: value,
     });
   };
-  
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      //Validar form
-      if(Object.values(expense).includes('')){
-        setError('Todos los campos son obligatorios')
-        return
-      }
+    e.preventDefault();
+    //Validar form
+    if (Object.values(expense).includes("")) {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
 
-      //validar presupuesto
+    //validar presupuesto
 
-      if((expense.amount - previousAmount) > disponible){
-        setError('El presupuesto no alcanza')
-        return
-      }
+    if (expense.amount - previousAmount > disponible) {
+      setError("El presupuesto no alcanza");
+      return;
+    }
 
-      //Agregar o actializar el  gasto
-      if(state.editindId){
-        dispatch({type:'update-expense', payload:{expense:{id: state.editindId, ...expense}}})
+    //Agregar o actializar el  gasto
+    if (state.editindId) {
+      dispatch({
+        type: "update-expense",
+        payload: { expense: { id: state.editindId, ...expense } },
+      });
+    } else {
+      dispatch({ type: "add-expense", payload: { expense } });
+    }
 
-      }else{
+    //Reiniciar el form
+    setExpense({
+      amount: 0,
+      expenseName: "",
+      category: "",
+      date: new Date(),
+    });
 
-        dispatch({type:'add-expense', payload:{expense}})
-      }
-
-      //Reiniciar el form
-      setExpense({
-        amount: 0,
-        expenseName: "",
-        category: "",
-        date: new Date(),
-      })
-
-      setPreviousAmount(0)
-  }
-
+    setPreviousAmount(0);
+  };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit }>
+    <form className="space-y-5" onSubmit={handleSubmit}>
       <legend className="uppercase text-center text-2xl font-black border-b-4 border-b-blue-500 py-2">
-      {state.editindId ? 'Guardar Cambios' : 'Nuevo Gasto'}
+        {state.editindId ? "Guardar Cambios" : "Nuevo Gasto"}
       </legend>
 
-      {error && <ErrorMessage>{error}</ErrorMessage> }
+      {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <div className="flex flex-col gap-2">
         <label htmlFor="expenseName" className="text-xl">
@@ -109,13 +114,14 @@ export default function ExpenseForm() {
           Cantidad:
         </label>
         <input
-          type="text"
+          type="number"
           id="amount"
           placeholder="Añade la cantidad: ej. 300"
           className="bg-slate-100 p-2"
           name="amount"
-          value={expense.amount}
+          value={expense.amount === 0 ? "" : expense.amount} // Condición para mostrar el valor vacío si es 0
           onChange={handleChange}
+          step="any"
         />
       </div>
 
@@ -153,7 +159,7 @@ export default function ExpenseForm() {
       <input
         type="submit"
         className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg"
-        value={state.editindId ? 'Guardar Cambios' : 'Guardar Gasto'}
+        value={state.editindId ? "Guardar Cambios" : "Guardar Gasto"}
       />
     </form>
   );
